@@ -12,7 +12,7 @@
       "once_6.jpg",
       "once_7.jpg",
       "once_8.jpg",
-      "once_9.jpg"
+      "once_9.jpg",
       "once_10.jpg",
       "once_11.jpg",
       "once_12.jpg",
@@ -34,7 +34,7 @@
     ]
   },
   "BlackWhite": {
-    "title": "B&White",
+    "title": "Black&White",
     "path": "BlackWhite/",
     "files": [
       "bw_1.jpg",
@@ -93,7 +93,7 @@
       "color_6.jpg",
       "color_7.jpg",
       "color_8.jpg",
-      "color_9.jpg"
+      "color_9.jpg",
       "color_10.jpg",
       "color_11.jpg",
       "color_12.jpg",
@@ -211,3 +211,4 @@
     ]
   }
 }
+
