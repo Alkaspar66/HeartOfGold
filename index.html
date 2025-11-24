@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Shai K.</title>
+
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="./favicon.png?v=4">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+
+<style>
+body { margin:0; font-family:sans-serif; background:#111; color:#fff; text-align:center; }
+.container { max-width:1000px; margin:0 auto; padding:10px; }
+
+/* авторский блок */
+.author-photo { width:150px; border-radius:50%; }
+.top-text-block { text-align:center; font-size:1rem; margin:16px 0; }
+
+.author-text p {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 1.6rem;
+  margin: 10px 0;
+}
+
+.top-text-block p {
+  font-family: 'MedievalSharp', cursive;
+  font-size: 1.3rem;
+  line-height: 1.2;
+}
+
+/* preview */
+#previewContainer { position:relative; max-width:1000px; margin:20px auto; }
+#previewImage {
+  width:100%;
+  height:80vh;            /* 80% высоты экрана */
+  object-fit:contain;     /* масштабировать, не обрезать */
+  border-radius:12px;
+  display:block;
+  opacity:0;              /* fade-in */
+  transition: opacity 1.2s ease;
+  background:#000;
+}
+
+/* fullscreen slideshow */
+#slideshowFullscreen {
+  position:fixed; inset:0; background:black; display:none; z-index:99999; overflow:hidden;
+}
+.slide {
+  position:absolute; inset:0; 
+  background-size:contain; 
+  background-position:center;
+  background-repeat:no-repeat; 
+  opacity:0; 
+  transition: opacity 1s ease; /* плавный fade */
+}
+.slide.show { opacity:1; }
+
+/* gallery buttons */
+#galleryButtons { display:flex; flex-direction:column; align-items:center; margin-top:16px; gap:12px; }
+.gallery-btn {
+  font-family: 'UnifrakturCook', cursive;
+  font-size:1.4rem; padding:10px 24px;
+  background: linear-gradient(145deg, #111 0%, #333 50%, #111 100%);
+  color:#fff; border:2px solid #fff; border-radius:8px;
+  cursor:pointer; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.5);
+  opacity:0; transform: translateY(-20px);
+  transition:0.3s;
+}
+.gallery-btn:hover { background: linear-gradient(145deg, #222 0%, #eee 50%, #222 100%); color:#000; }
+
+/* animation */
+@keyframes slideDownFade { 0% {opacity:0; transform:translateY(-20px);} 100% {opacity:1; transform:translateY(0);} }
+
+@media(max-width:600px){
+  .gallery-btn { font-size:1.1rem; padding:6px 16px; }
+}
+
+/* social icons */
+.social-icons { display:flex; justify-content:center; gap:12px; margin:16px 0; }
+.social-icons a i {
+  font-size:28px; color:#fff; filter:grayscale(100%); opacity:0.7; transition:0.3s;
+}
+.social-icons a i:hover { filter:grayscale(0%); opacity:1; }
+
+</style>
+</head>
+<body>
+<div class="container">
+
+  <section class="author">
+    <img src="./author3.jpg" alt="Author" class="author-photo">
+    <div class="author-text">
+      <p>Searching for the Heart of Gold</p>
+    </div>
+  </section>
+
+  <section class="author">
+    <div class="author-text">
+      <div class="top-text-block">
+        <p>In 2010 I left my home with nothing but camera and notebook.</p> 
+        <p>Here are a few treasures I found along the way</p> 
+      </div>
+    </div>
+  </section>
+
+  <!-- preview -->
+  <div id="previewContainer">
+    <img id="previewImage" src="" alt="Preview image">
+  </div>
+
+  <!-- gallery buttons -->
+  <div id="galleryButtons"></div>
+
+  <!-- social icons -->
+  <div class="contact">
+    <div class="social-icons">
+      <a href="https://facebook.com/shay.kasperski" target="_blank"><i class="ri-facebook-fill"></i></a>
+      <a href="https://wa.me/48514629452" target="_blank"><i class="ri-whatsapp-fill"></i></a>
+      <a href="https://instagram.com/allka.ss" target="_blank"><i class="ri-instagram-fill"></i></a>
+      <a href="https://t.me/alkaspar" target="_blank"><i class="ri-telegram-fill"></i></a>
+    </div>
+  </div>
+
+  <footer>© AlKaspar, 2025</footer>
+</div>
+
+<!-- fullscreen slideshow -->
+<div id="slideshowFullscreen" role="dialog" aria-hidden="true">
+</div>
+
+<script>
+/* CONFIG */
+const JSON_PATH = "./galleries/galleries.json";
+const slideShowDelay = 3000;
+const fadeMs = 1000;
+
+/* STATE */
+let galleries={}, slides=[], current=0, playing=false, timer=null;
+
+/* DOM */
+const previewImage = document.getElementById("previewImage");
+const slideshow = document.getElementById("slideshowFullscreen");
+const galleryButtonsContainer = document.getElementById("galleryButtons");
+
+/* ----------------- FIXED PREVIEW ----------------- */
+previewImage.src = "./galleries/BlackWhite/bw_1.jpg";
+previewImage.style.opacity = 0;
+previewImage.onload = () => { previewImage.style.opacity = 1; };
+// если кэш
+if(previewImage.complete) previewImage.style.opacity = 1;
+
+/* ----------------- LOAD JSON AND CREATE BUTTONS ----------------- */
+fetch(JSON_PATH)
+.then(r=>r.json())
+.then(json=>{
+  galleries = json;
+  createGalleryButtons();
+})
+.catch(err=>{ console.error(err); });
+
+function createGalleryButtons(){
+  galleryButtonsContainer.innerHTML = "";
+  Object.keys(galleries).forEach((key, idx)=>{
+    const btn = document.createElement("button");
+    btn.className = "gallery-btn";
+    btn.textContent = galleries[key].title;
+
+    // Начальное состояние для анимации
+    btn.style.opacity = 0;
+    btn.style.transform = "translateY(-20px)";
+
+    // Анимация появления с задержкой
+    setTimeout(() => {
+      btn.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+      btn.style.opacity = 1;
+      btn.style.transform = "translateY(0)";
+    }, idx*150);
+
+    btn.addEventListener("click", ()=>{
+      updateActiveButton(btn);
+      openSlideshow(galleries[key]);
+    });
+    galleryButtonsContainer.appendChild(btn);
+  });
+  updateActiveButton();
+}
+
+function updateActiveButton(activeBtn){
+  const btns = galleryButtonsContainer.children;
+  Array.from(btns).forEach(btn=>{
+    btn.classList.remove("active");
+    if(btn===activeBtn) btn.classList.add("active");
+  });
+}
+
+/* ----------------- SLIDESHOW ----------------- */
+function openSlideshow(gallery){
+  if(!gallery.files.length) return;
+
+  slideshow.innerHTML = '<div id="pausePlayIcon" class="ri-play-fill"></div>';
+  slides = [];
+
+  gallery.files.forEach((fname, idx) => {
+    const d = document.createElement("div");
+    d.className = "slide";
+    d.style.backgroundImage = `url('./galleries/${gallery.path}${fname}')`;
+    slideshow.appendChild(d);
+    slides.push(d);
+  });
+
+  slideshow.style.display = "block";
+  slideshow.setAttribute("aria-hidden", "false");
+
+  // плавный fade-in для первого слайда
+  setTimeout(() => {
+    slides[0].classList.add("show");
+  }, 50);
+
+  playing = true;
+  current = 0;
+  timer = setInterval(nextSlide, slideShowDelay);
+}
+
+function nextSlide(){
+  if(slides.length===0) return;
+  slides[current].classList.remove("show");
+  current++;
+  if(current >= slides.length){ closeSlideshow(); return; }
+  slides[current].classList.add("show");
+}
+
+function closeSlideshow(){
+  if(timer){ clearInterval(timer); timer=null; }
+  slideshow.style.display = "none";
+  slides = []; current=0;
+}
+
+/* click / dblclick */
+let clickTimeout=null;
+slideshow.addEventListener("click", ()=>{
+  if(clickTimeout) return;
+  clickTimeout = setTimeout(()=>{
+    clickTimeout=null;
+    if(playing){ clearInterval(timer); playing=false; }
+    else{ playing=true; timer=setInterval(nextSlide, slideShowDelay); }
+  }, 220);
+});
+slideshow.addEventListener("dblclick", ()=>{
+  if(clickTimeout){ clearTimeout(clickTimeout); clickTimeout=null; }
+  closeSlideshow();
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeSlideshow(); });
+</script>
+</body>
+</html>
