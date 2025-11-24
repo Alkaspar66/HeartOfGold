@@ -59,24 +59,45 @@ body { margin:0; font-family:sans-serif; background:#111; color:#fff; text-align
 }
 .slide.show { opacity:1; }
 
-/* gallery buttons */
-#galleryButtons { display:flex; flex-direction:column; align-items:center; margin-top:16px; gap:12px; }
+/* gallery buttons grid */
+#galleryButtons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  width: 100%;
+}
+
+/* gallery button style */
 .gallery-btn {
-  font-family: 'UnifrakturCook', cursive;
-  font-size:1.4rem; padding:10px 24px;
+  font-family: 'MedievalSharp', cursive;   /* ← шрифт как в тексте */
+  font-size: 1.4rem;
+  padding: 10px 24px;
   background: linear-gradient(145deg, #111 0%, #333 50%, #111 100%);
-  color:#fff; border:2px solid #fff; border-radius:8px;
-  cursor:pointer; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.5);
-  opacity:0; transform: translateY(-20px);
+  color:#fff;
+  border:2px solid #fff;
+  border-radius:8px;
+  cursor:pointer;
+  text-align:center;
+  box-shadow:0 2px 4px rgba(0,0,0,0.5);
+  opacity:0;
+  transform: translateY(-20px);
   transition:0.3s;
 }
-.gallery-btn:hover { background: linear-gradient(145deg, #222 0%, #eee 50%, #222 100%); color:#000; }
 
-/* animation */
-@keyframes slideDownFade { 0% {opacity:0; transform:translateY(-20px);} 100% {opacity:1; transform:translateY(0);} }
+.gallery-btn:hover {
+  background: linear-gradient(145deg, #222 0%, #eee 50%, #222 100%);
+  color:#000;
+}
 
 @media(max-width:600px){
-  .gallery-btn { font-size:1.1rem; padding:6px 16px; }
+  #galleryButtons {
+    grid-template-columns: 1fr; /* мобильное: одна колонка */
+  }
+  .gallery-btn { 
+    font-size:1.1rem; 
+    padding:6px 16px; 
+  }
 }
 
 /* social icons */
@@ -257,3 +278,4 @@ document.addEventListener("keydown", e=>{ if(e.key==="Escape") closeSlideshow();
 </script>
 </body>
 </html>
+
